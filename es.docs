@@ -1,0 +1,13 @@
+postgres=# CREATE DATABASE courses_db;
+CREATE DATABASE
+postgres=# CREATE USER eslam_user WITH PASSWORD 'ESLAM2001';
+CREATE ROLE
+postgres=# ALTER ROLE eslam_user SET client_encoding TO 'utf8';
+ALTER ROLE
+postgres=# ALTER ROLE eslam_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE
+postgres=# ALTER ROLE eslam_user SET timezone TO 'UTC';
+ALTER ROLE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE courses_db TO eslam_user;
+GRANT
+postgres=# \q
