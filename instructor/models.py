@@ -11,6 +11,8 @@ class Instructor(models.Model):
     email = models.EmailField(unique=True)
     date_joined = models.DateField(auto_now_add=True)
 
+    
+
     class Meta:
 
         ordering = ['last_name', 'first_name']
