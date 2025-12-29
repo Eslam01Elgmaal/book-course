@@ -94,20 +94,18 @@ WSGI_APPLICATION = 'src.wsgi.application'
 env = environ.Env(
     DEBUG=(bool, False)
 )
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))   # BASE_DIR = project root
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'NAME':     env('POSTGRES_DB', default='bookcourse'),
+        'USER':     env('POSTGRES_USER', default='postgres'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST':     env('POSTGRES_HOST', default='localhost'),     # fallback for local
+        'PORT':     env('POSTGRES_PORT', default='5432'),
     }
 }
-
-
 
 
 # Password validation
