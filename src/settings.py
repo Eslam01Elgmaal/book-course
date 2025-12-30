@@ -1,4 +1,6 @@
 
+
+
 import environ
 import os
 
@@ -57,6 +59,9 @@ INSTALLED_APPS = [
     'course',
     'instructor',
     'student',
+    'rest_framework',
+    'rest_framework.authtoken',
+
 ]
 
 MIDDLEWARE = [
@@ -91,10 +96,6 @@ WSGI_APPLICATION = 'src.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-env = environ.Env(
-    DEBUG=(bool, False)
-)
-environ.Env.read_env()
 
 DATABASES = {
     'default': {
