@@ -4,17 +4,6 @@ import os
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 """
 Django settings for src project.
 
@@ -54,10 +43,35 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'course',
+    #internal apps
     'instructor',
     'student',
+    'course',
+    #external apps
+    'rest_framework',
+    'drf_spectacular',
+    'django_filters',           
+
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,                        # 20 items per page
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# drf-spectacular config (for Swagger UI)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Courses Platform API',
+    'DESCRIPTION': 'API for categories, courses, enrollments and payments',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': True,
+    'SWAGGER_UI_DIST': 'SIDECAR',           # optional: use local static files
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
