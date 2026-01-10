@@ -1,6 +1,9 @@
-from django.views.generic import ListView, DetailView, TemplateView
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, TemplateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
-#from course.models import fun_name #fun name
+from .mixins import InstructorRequiredMixin
+from django.urls import reverse
+from course.models import Course 
 from django.shortcuts import redirect
 from .models import Instructor
 
@@ -25,14 +28,46 @@ class InstrDetail(LoginRequiredMixin, DetailView):
     template_name = 'instructor/instructor_detail.html'
     context_object_name = 'instructor'
 
-"""
+
 class CourseCreateView(InstructorRequiredMixin, CreateView):
-    def post(self, request):
-        instructor = request.user.instructor
+    model = Course
+    fields = ['title', 'description', 'price']
+    template_name = 'instructor/course_create.html'
 
-        course = what_name(instructor=instructor,  #fun name
-        titel=request.POST["titel"],description=request.POST["description"],
-        price=request.POST['price'])
+    def form_valid(self, form):
+        form.instance.instructor = self.request.user.instructor
+        return super().form_valid(form)
 
-        return redirect("instructor:dashboard")
-"""
+    def get_success_url(self):
+        return reverse_lazy('instructor:dashboard')
+
+
+
+
+class CourseUpdateView(InstructorRequiredMixin, UpdateView):
+    model = Course
+    fields = ['title', 'description', 'price']
+    template_name = 'instructor/course_edit.html'
+
+    def get_success_url(self):
+        return reverse('instructor:dashboard')
+
+
+
+
+class CourseDeleteView(InstructorRequiredMixin, DeleteView):
+    model = Course
+    template_name = 'instructor/course_delete.html'
+
+    def get_success_url(self):
+        return reverse('instructor:dashboard')
+
+
+
+class InstructorCourseListView(LoginRequiredMixin, ListView):
+    model = Course
+    template_name = 'instructor/instructor_courses.html'
+    context_object_name = 'courses'
+
+    def get_queryset(self):
+        return Course.objects.filter(instructor=self.request.user.instructor)

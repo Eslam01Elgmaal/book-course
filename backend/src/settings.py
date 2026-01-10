@@ -115,11 +115,11 @@ env.read_env(os.path.join(BASE_DIR, '..', '.env'))  # one level up from BASE_DIR
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     env('POSTGRES_DB', default='bookcourse'),
-        'USER':     env('POSTGRES_USER', default='postgres'),
-        'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST':     env('POSTGRES_HOST', default='localhost'),     # fallback for local
-        'PORT':     env('POSTGRES_PORT', default='5432'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
