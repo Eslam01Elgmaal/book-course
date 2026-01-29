@@ -1,13 +1,16 @@
+# course/api_urls.py
 from rest_framework.routers import DefaultRouter
-
 from .views import (
-    CategoryViewSet, CourseViewSet, EnrollmentViewSet, PaymentViewSet
+    CategoryViewSet,
+    CourseViewSet,
+    ModuleViewSet,
+    LessonViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'courses', CourseViewSet, basename='course')
-router.register(r'enrollments', EnrollmentViewSet, basename='enrollment')
-router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'modules', ModuleViewSet, basename='module')
+router.register(r'lessons', LessonViewSet, basename='lesson')
 
 urlpatterns = router.urls

@@ -1,10 +1,12 @@
-# course/views.py (or api/views.py)
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Category, Course, Enrollment, Payment
+from rest_framework.filters import SearchFilter, OrderingFilter
+from .models import Category, Course, Module, Lesson
 from .serializers import (
-    CategorySerializer, CourseListSerializer, CourseDetailSerializer,
-    EnrollmentSerializer, PaymentSerializer
+    CategorySerializer,
+    CourseListSerializer, CourseDetailSerializer,
+    ModuleListSerializer, ModuleDetailSerializer,
+    LessonListSerializer, LessonDetailSerializer
 )
 
 
@@ -12,7 +14,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['name']
 
@@ -26,26 +28,33 @@ class CourseViewSet(viewsets.ModelViewSet):
             return CourseListSerializer
         return CourseDetailSerializer
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'language', 'is_published', 'price']
-    search_fields = ['title', 'description']
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['category', 'language', 'level', 'is_published']
+    search_fields = ['title', 'description', 'instructor__first_name', 'instructor__last_name']
     ordering_fields = ['created_at', 'price', 'title']
 
 
-class EnrollmentViewSet(viewsets.ModelViewSet):
-    queryset = Enrollment.objects.all()
-    serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated]  # usually only owner or admin
+class ModuleViewSet(viewsets.ModelViewSet):
+    queryset = Module.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ModuleListSerializer
+        return ModuleDetailSerializer
 
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['student', 'course', 'completed']
+    filterset_fields = ['course']
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class LessonViewSet(viewsets.ModelViewSet):
+    queryset = Lesson.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['status', 'payment_method', 'student']
-    ordering_fields = ['created_at', 'amount']
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return LessonListSerializer
+        return LessonDetailSerializer
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['module', 'module__course', 'lesson_type', 'is_preview']
