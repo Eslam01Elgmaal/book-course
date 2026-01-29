@@ -1,12 +1,14 @@
 # course/models.py
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, blank=True)
     description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=50, blank=True, help_text="Font Awesome icon name, e.g. fa-code")
 
     class Meta:
         verbose_name_plural = "categories"
@@ -25,14 +27,21 @@ class Course(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     instructor = models.ForeignKey('instructor.Instructor', on_delete=models.PROTECT, related_name='created_courses')
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='courses')
     description = models.TextField()
+    what_you_will_learn = models.TextField(blank=True, help_text="One point per line – what student gains")
+    requirements = models.TextField(blank=True, help_text="One point per line – what student needs to know")
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='courses')
     language = models.CharField(max_length=50, default="English")
+    level = models.CharField(
+        max_length=20,
+        choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')],
+        default='beginner'
+    )
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
-    is_published = models.BooleanField(default=False)  # ← added
-
+    trailer_url = models.URLField(blank=True, null=True, help_text="Preview video – YouTube/Vimeo")
+    is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -46,11 +55,11 @@ class Course(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.title)
-            slug = base_slug
+            base = slugify(self.title)
+            slug = base
             counter = 1
             while Course.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
+                slug = f"{base}-{counter}"
                 counter += 1
             self.slug = slug
         super().save(*args, **kwargs)
@@ -64,48 +73,65 @@ class Course(models.Model):
         return bool(self.discount_price and self.discount_price < self.price)
 
 
-class Enrollment(models.Model):
-    student = models.ForeignKey('student.Student', on_delete=models.CASCADE, related_name='enrollments')
-    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='enrollments')
-    enrolled_at = models.DateTimeField(auto_now_add=True)
-    completed = models.BooleanField(default=False)
-    progress = models.FloatField(default=0.0)
+class Module(models.Model):
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    description = models.TextField(blank=True)
+    is_free_preview = models.BooleanField(default=False)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['student', 'course'], name='unique_enrollment')]
-        ordering = ['-enrolled_at']
+        ordering = ['order', 'title']
+        unique_together = [['course', 'order']]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.student} → {self.course.title}"
+        return f"{self.course.title} – {self.title}"
 
 
-class Payment(models.Model):
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
-    )
-    METHOD_CHOICES = (
-        ('stripe', 'Stripe'),
-        ('paypal', 'PayPal'),
-        ('manual', 'Manual / Bank Transfer'),
+class Lesson(models.Model):
+    TYPE_CHOICES = (
+        ('video', 'Video'),
+        ('article', 'Article / Text'),
+        ('quiz', 'Quiz'),
+        ('assignment', 'Assignment'),
+        ('download', 'Downloadable Resource'),
         ('other', 'Other'),
     )
 
-    enrollment = models.ForeignKey('Enrollment', on_delete=models.PROTECT, related_name='payments')
-    student = models.ForeignKey('student.Student', on_delete=models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
-    payment_method = models.CharField(max_length=30, choices=METHOD_CHOICES, default='manual')
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
-    proof_file = models.FileField(upload_to='payment_proofs/', blank=True, null=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='lessons')
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    lesson_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='video')
+    duration_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Duration in minutes (video)")
+    content = models.TextField(blank=True)  # rich text / markdown for articles
+    # video_url = models.URLField(blank=True, null=True)
+    # Video options (choose ONE method per lesson)
+    video_url = models.URLField(blank=True, null=True, help_text="YouTube/Vimeo embed URL (for long videos)")
+    video_file = models.FileField(
+        upload_to='lesson_videos/%Y/%m/%d/',
+        blank=True, 
+        null=True,
+        help_text="Upload short video (MP4, max 500MB, under 15 min recommended)"
+    )
+    external_url = models.URLField(blank=True, null=True, help_text="External resource link")
+    file = models.FileField(upload_to='lesson_files/', blank=True, null=True)
+    is_preview = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['order', 'title']
+        unique_together = [['module', 'order']]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Payment #{self.id} - {self.student} - {self.amount} {self.currency}"
+        return f"{self.module.title} – {self.title}"
