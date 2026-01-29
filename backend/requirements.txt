@@ -9,3 +9,6 @@ django-filter>=24.3                 # optional but very useful for filtering
 # or drf-yasg if you prefer old-style swagger
 
 Pillow>=10.0
+
+django-cors-headers
+moviepy==1.0.3
