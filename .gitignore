@@ -1,7 +1,12 @@
+#backend
 .env
-docker-compose.yml
 venv/
 __pycache__/
 *.pyc
 db.sqlite3
 *.log
+
+
+#frontend
+.next/
+node_modules/
