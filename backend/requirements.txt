@@ -1,3 +1,4 @@
+# backend/requirements.txt
 django>=5.1,<6.0
 djangorestframework>=3.15,<3.16     # latest stable in late 2025
 psycopg[binary]>=3.2                # for PostgreSQL
