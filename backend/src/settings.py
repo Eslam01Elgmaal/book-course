@@ -46,11 +46,16 @@ INSTALLED_APPS = [
     #internal apps
     'instructor',
     'student',
-    'course',
+    'course',           # core content
+    'enrollments',      # student-course relationship
+    'payments',    
     #external apps
     'rest_framework',
     'drf_spectacular',
-    'django_filters',           
+    'django_filters',
+    'corsheaders',      # for frontend
+   
+    
 
 ]
 REST_FRAMEWORK = {
@@ -164,3 +169,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+
+# Max upload size for files (videos, PDFs, etc.)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 150 * 1024 * 1024  # 150 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 150 * 1024 * 1024

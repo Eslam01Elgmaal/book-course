@@ -1,9 +1,9 @@
+# instructor/admin.py
 from django.contrib import admin
 from .models import Instructor
-# Register your models here.
-
 
 @admin.register(Instructor)
 class InstructorAdmin(admin.ModelAdmin):
-
-    list_display = ('first_name', 'last_name','email' , 'date_joined') 
+    list_display = ('first_name', 'last_name', 'email', 'date_joined')
+    search_fields = ('first_name', 'last_name', 'email')
+    list_filter = ('date_joined',)
